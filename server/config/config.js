@@ -15,7 +15,7 @@ let urlDB;
 if (process.env.NODE_ENV ==='dev'){
     urlDB='mongodb://localhost:27017/mariscos';
 }else{
-    urlDB='mongodb+srv://dinkydau:lnij8TlfXIXYYVAq@cluster0-f7avu.mongodb.net/test'
+    urlDB=process.env.MONGO_URI;
 }
 
 process.env.URLDB = urlDB;
