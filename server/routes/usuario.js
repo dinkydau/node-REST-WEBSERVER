@@ -2,9 +2,8 @@ const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
-
 const Usuario = require('../models/usuario');
-
+const { verificaToken, verificaRol } =require('../middlewares/autenticacion');
 
 //FUNCIONES DE REST
 
@@ -12,7 +11,16 @@ app.get('/', function (req, res) {
     res.json('Hola mundo');
 });
 
-app.get('/usuario', function (req, res) {
+app.get('/usuario', verificaToken ,  (req, res) => {
+    
+    // DEBUG
+    // return res.json({
+    //     usuario : req.usuario,
+    //     nombre : req.usuario.nombre,
+    //     email : req.usuario.email
+    // });
+    
+    
     let desde = req.query.desde || 0;
     desde = Number(desde);
 
@@ -23,7 +31,7 @@ app.get('/usuario', function (req, res) {
         .limit(limite)
         .exec((err, usuarios) => {
             if (err) {
-                res.status(400).json({
+                return res.status(400).json({
                     ok: false,
                     message: err
                 });
@@ -40,7 +48,8 @@ app.get('/usuario', function (req, res) {
 
 });
 
-app.post('/usuario', function (req, res) {
+app.post('/usuario', [verificaToken,verificaRol] ,function (req, res) {
+    
     let body = req.body;
 
     //Validacion del modelo de usuario
@@ -48,21 +57,16 @@ app.post('/usuario', function (req, res) {
         nombre: body.nombre,
         email: body.email,
         password: bcrypt.hashSync(body.password, 10),
-        //img : body.img,
         role: body.role
-        // estado : body.estado,
-        // google : body.google
     });
 
     usuario.save((err, usuarioDB) => {
         if (err) {
-            res.status(400).json({
+            return res.status(400).json({
                 ok: false,
                 message: err
             });
         }
-
-        //usuarioDB.password = null;
 
         res.json({
             ok: true,
@@ -70,19 +74,9 @@ app.post('/usuario', function (req, res) {
         });
     });
 
-    //validacion sin necesitar del modelo
-    //     if (body.nombre === undefined || body.edad === undefined || body.correo === undefined) {
-    //         res.status(400).json({
-    //             ok: false,
-    //             message: 'Json incompleto'
-    //         });
-    //     } else {
-    //         res.json({ persona: body });
-    //     }
-
 });
 
-app.put('/usuario/:id', function (req, res) {
+app.put('/usuario/:id', [verificaToken,verificaRol] ,function (req, res) {
 
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
@@ -94,7 +88,7 @@ app.put('/usuario/:id', function (req, res) {
     Usuario.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
 
         if (err) {
-            res.status(400).json({
+            return res.status(400).json({
                 ok: false,
                 message: err
             });
@@ -111,7 +105,7 @@ app.put('/usuario/:id', function (req, res) {
 });
 
 
-app.delete('/usuario/:id', function (req, res) {
+app.delete('/usuario/:id', [verificaToken,verificaRol] , function (req, res) {
     let id = req.params.id;
     let body = {
         estado: false
@@ -119,13 +113,13 @@ app.delete('/usuario/:id', function (req, res) {
     Usuario.findByIdAndUpdate(id, body, { new: true }, (err, usuarioDB) => {
 
         if (err) {
-            res.status(400).json({
+            return res.status(400).json({
                 ok: false,
                 message: err
             });
         }
         if (!usuarioDB) {
-            res.status(400).json({
+            return res.status(400).json({
                 ok: false,
                 err: {
                     message: 'Usuario no encontrado'
