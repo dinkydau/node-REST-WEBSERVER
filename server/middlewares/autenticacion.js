@@ -1,6 +1,4 @@
 const jwt = require('jsonwebtoken');
-
-
 //===============================
 //          Verificar
 //            TOKEN

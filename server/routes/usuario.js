@@ -13,14 +13,6 @@ const { verificaToken, verificaRol } =require('../middlewares/autenticacion');
 
 app.get('/usuario', verificaToken ,  (req, res) => {
     
-    // DEBUG
-    // return res.json({
-    //     usuario : req.usuario,
-    //     nombre : req.usuario.nombre,
-    //     email : req.usuario.email
-    // });
-    
-    
     let desde = req.query.desde || 0;
     desde = Number(desde);
 
