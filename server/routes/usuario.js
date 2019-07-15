@@ -7,9 +7,9 @@ const { verificaToken, verificaRol } =require('../middlewares/autenticacion');
 
 //FUNCIONES DE REST
 
-app.get('/', function (req, res) {
-    res.json('Hola mundo');
-});
+// app.get('/', function (req, res) {
+//     res.json('Hola mundo');
+// });
 
 app.get('/usuario', verificaToken ,  (req, res) => {
     
