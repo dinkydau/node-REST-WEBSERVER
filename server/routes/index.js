@@ -5,4 +5,5 @@ app.use(require('./usuario'));//obtener todos los valores de CRUD usuario
 app.use(require('./login'));
 app.use(require('./categoria'));
 app.use(require('./producto'));
+app.use(require('./upload'));
 module.exports=app;
