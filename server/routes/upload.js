@@ -1,18 +1,27 @@
+//===========================================
+//              REQUIRES
+//===========================================
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const app = express();
 const fs = require('fs');
-const path = require('path'); 
+const path = require('path');
 const Usuario = require('../models/usuario');
-
-
+const Producto = require('../models/producto');
+//===========================================
+//              HABILITAMOS
+//              FILE UPLOAD
+//===========================================
 app.use(fileUpload({
     useTempFiles: true,
     tempFileDir: '/tmp/'
 })
 );
 
-
+//===========================================
+//              METODO PUT PARA
+//              CARGAR IMAGENES
+//===========================================
 app.put('/upload/:tipo/:id', function (req, res) {
     //===========================================
     //              Obtenemos las 
@@ -75,16 +84,19 @@ app.put('/upload/:tipo/:id', function (req, res) {
                 archivoCargado
             })
         }
-        imagenUsuario(id, res, nombreArchivo);
-
-        // res.json({
-        //     ok: true,
-        //     message: 'Se han cargado los archivos.',
-        //     archivoCargado
-        // })
+        if (tipo === 'usuarios') {
+            imagenUsuario(id, res, nombreArchivo);
+        }
+        if (tipo === 'productos') {
+            imagenProducto(id, res, nombreArchivo);
+        }
     })
 })
-
+//===========================================
+//              FUNCION PARA
+//              CARGAR LA IMAGEN
+//              DEL USUARIO
+//===========================================
 
 function imagenUsuario(id, res, nombreArchivo) {
     Usuario.findById(id, (err, usuarioDB) => {
@@ -102,18 +114,64 @@ function imagenUsuario(id, res, nombreArchivo) {
                 }
             });
         }
-        usuarioDB.img=nombreArchivo;
-        usuarioDB.save((err,usuariGuardado)=>{
+        borraArchivoDuplicado('usuarios', usuarioDB.img)
+        usuarioDB.img = nombreArchivo;
+        usuarioDB.save((err, usuariGuardado) => {
             res.json({
-                ok:true,
-                usuario:usuariGuardado,
+                ok: true,
+                usuario: usuariGuardado,
                 img: nombreArchivo
             })
         })
     })
 }
+//===========================================
+//              FUNCION PARA
+//              CARGAR LA IMAGEN
+//              DEL PRODUCTO
+//===========================================
+function imagenProducto(id, res, nombreArchivo) {
+    Producto.findById(id, (err, productoDB) => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                err
+            });
+        }
+        if (!productoDB) {
+            return res.status(400).json({
+                ok: false,
+                err: {
+                    message: 'Producto no existente'
+                }
+            });
+        }
+        borraArchivoDuplicado('productos', productoDB.img)
+        productoDB.img = nombreArchivo;
+        productoDB.save((err, productoGuardado) => {
+            res.json({
+                ok: true,
+                producto: productoGuardado,
+                img: nombreArchivo
+            })
+        })
 
-function imagenProducto() { }
+    })
+}
 
 
+//===========================================
+//              FUNCION PARA
+//              VALIDAR SI LA
+//              IMAGEN AUN EXISTE.
+//===========================================
+function borraArchivoDuplicado(tipo, nombreBorrar) {
+    let pathUrlImagen = path.resolve(__dirname, `../../uploads/${tipo}/${nombreBorrar}`);
+    if (fs.existsSync(pathUrlImagen)) {
+        fs.unlinkSync(pathUrlImagen);
+    }
+}
+//===========================================
+//              EXPORTACION
+//===========================================
 module.exports = app;
